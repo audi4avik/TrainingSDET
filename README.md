@@ -1,1 +1,1 @@
-# TrainingSDET
+# Training SDET
