@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd" >
+<suite parallel="false" name="Suite">
+  <test name="Test">
+    <classes>
+      <class name="project_LMS.VerifyWebsiteTitle"/>
+      <class name="project_LMS.VerifyWebsiteHeading"/>
+      <class name="project_LMS.VerifyInfoBoxTitle"/>
+      <class name="project_LMS.VerifySecondPopularCourse"/>
+      <class name="project_LMS.VerifyMyAccountPage"/> 
+      <class name="project_LMS.VerifyCourses"/>
+      <class name="project_LMS.VerifyContactForm"/> 
+      <class name="project_LMS.VerifyLoginFeature"/>  
+      <class name="project_LMS.VerifyCourseComplete"/>      
+    </classes>
+  </test> <!-- Test -->
+</suite> <!-- Suite -->
