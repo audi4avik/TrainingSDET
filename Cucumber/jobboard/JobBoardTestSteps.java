@@ -19,7 +19,7 @@ public class JobBoardTestSteps {
     WebDriver driver;
     WebDriverWait wait;
     
-    @Before
+    @Before ("@createuser or @jobapply or @jobpost or @examplepost")
     public void openBrowser(){
         //Setup instances
         driver = new FirefoxDriver();
