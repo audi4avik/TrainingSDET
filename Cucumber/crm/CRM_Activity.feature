@@ -31,13 +31,16 @@ Examples:
 | vegan72@example.edu |
 |	jim@example.com |
 
-@createvacancy
-Scenario Outline: Create a meeting and invite memebers using examples table
+@createproduct
+Scenario Outline: Create a product and validate
     Given User logs on to CRM website with username "admin" and password "pa$$w0rd" 
-    When User navigates to create meeting section
-    Then User fills in the required details for the meeting
-    And User selects the members "<Email>" for the meeting 
-    And User navigates to view meetings to confirm
+    And User navigates to create product section
+    When User fills in the required details for the product "<Name>" and "<Price>"
+    Then User navigates to view products to confirm "<Name>"
     And Closes the browser for crm activity
-    
+
+Examples:    
+| Name           | Price   |
+| New Product    | 2999.00 |
+| DIY Product    |  199.12 |
 

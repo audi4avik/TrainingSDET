@@ -23,7 +23,7 @@ public class CRMTestSteps {
     WebDriver driver;
     WebDriverWait wait;
     
-    @Before ("@crmcount or @createleads or @createmeeting")
+    @Before ("@crmcount or @createleads or @createmeeting or @createproduct")
     public void openFirefox(){
         //Setup instances
         driver = new FirefoxDriver();
@@ -77,6 +77,21 @@ public class CRMTestSteps {
      	wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//h2[contains(text(), 'Meetings')]")));
 	
     }
+    
+    @And("^User navigates to create product section$")
+    public void gotoProduct() {
+    	wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//span//a[text()='All']")));
+    	Actions actions = new Actions(driver);
+     	WebElement menuOption = driver.findElement(By.xpath("//span//a[text()='All']"));
+     	actions.moveToElement(menuOption).perform();
+     	
+     	driver.findElement(By.xpath("(//li//a[text()='Products'])[1]")).click();
+     	
+     	wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//h2[contains(text(), 'Products ')]")));
+     	
+     	driver.findElement(By.xpath("//div[@class='actionmenulink'][text()='Create Product']")).click();
+	
+    }
          
     @Then("^User prints the details of each dashlet$")
     public void dashletInfo() {
@@ -114,6 +129,19 @@ public class CRMTestSteps {
     	driver.findElement(By.id("date_end_date")).sendKeys("01/15/2021"); 	
     }
     
+    @When("^User fills in the required details for the product \"(.*)\" and \"(.*)\"$")
+    public void createProduct(String productName, String productPrice) {
+    	wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//h2[contains(text(), 'CREATE')]")));
+    	
+    	driver.findElement(By.id("name")).sendKeys(productName);
+    	driver.findElement(By.id("price")).sendKeys(productPrice);
+    	
+    	((JavascriptExecutor) driver).executeScript("window.scrollTo(0, document.body.scrollHeight)");
+    	
+    	driver.findElement(By.xpath("(//input[@id='SAVE'])[2]")).click();
+    	
+    }
+    
     @And("^User validates the lead created successfully$")
     public void validateLead() {
     	wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//h2[contains(text(), 'Leads')]")));
@@ -143,6 +171,18 @@ public class CRMTestSteps {
     	
     	Assert.assertEquals("SDET Scrum Meeting", meetingName);
     }
+    
+
+    @Then("^User navigates to view products to confirm \"(.*)\"$")
+    public void validateProduct(String cnfName) {
+    	driver.findElement(By.xpath("//div[@class='actionmenulink'][text()='View Products']")).click();
+    	wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//h2[@class='module-title-text'][contains(text(),'Products')]")));
+    	String getName = driver.findElement(By.xpath("(//td[@scope='row']//a)[1]")).getText();
+    	
+    	Assert.assertEquals(cnfName, getName);
+    	
+    }
+    
     
     @And("^Closes the browser for crm activity$")
     public void closeBrowser() {
