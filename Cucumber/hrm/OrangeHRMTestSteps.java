@@ -1,12 +1,10 @@
 package stepDefinitions;
 
 import org.openqa.selenium.By;
-import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.Keys;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.firefox.FirefoxDriver;
-import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
@@ -25,7 +23,7 @@ public class OrangeHRMTestSteps {
     WebDriver driver;
     WebDriverWait wait;
     
-    @Before ("@createjobvacancy")
+    @Before ("@createjobvacancy or @addcandidate")
     public void openFirefox(){
         //Setup instances
         driver = new FirefoxDriver();
@@ -68,6 +66,19 @@ public class OrangeHRMTestSteps {
 		  wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("addJobVacancy")));
 		 
 	 }
+    
+    @And("^User clicks on the Add button to add candidate$")
+	 public void navigateToAddCandidate() throws Throwable {		  
+		  driver.findElement(By.id("menu_recruitment_viewCandidates")).click();
+		  
+		  //wait for the vacancies page to load
+		  wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("srchCandidates")));
+		  
+		  driver.findElement(By.id("btnAdd")).click();
+
+		  wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("addCandidateHeading")));
+		 
+	 }
 
     @When("^User provides the job details \"(.*)\", \"(.*)\", \"(.*)\"$")
 	 public void fillJobDetails(String jobName, String vacancyName, String hiringMgr) throws Throwable {
@@ -88,6 +99,29 @@ public class OrangeHRMTestSteps {
 		  String text=driver.findElement(By.xpath("//div[@id='addJobVacancy']/div/h1")).getText();
 		  Assert.assertEquals("The vacancy was not created", "Edit Job Vacancy", text);
 		  
+	 }
+    
+    @When("^User fills out candidate details with \"(.*)\", \"(.*)\", \"(.*)\", \"(.*)\"$")
+	 public void fillCandidateDetails(String fname, String lname, String email, String jobCode) throws Throwable {
+		  
+		  driver.findElement(By.id("addCandidate_firstName")).sendKeys(fname);
+		  driver.findElement(By.id("addCandidate_lastName")).sendKeys(lname); 
+		  driver.findElement(By.id("addCandidate_email")).sendKeys(email);
+		  
+		  WebElement jobDrpdwn = driver.findElement(By.id("addCandidate_vacancy"));
+		  Select dropdown=new Select(jobDrpdwn);
+		  dropdown.selectByVisibleText(jobCode);
+		  
+	 }
+    
+    @And("^User uploads resume \"(.*)\"$")
+	 public void uploadResume(String filePath) throws Throwable{
+
+		 driver.findElement(By.id("addCandidate_resume")).sendKeys(filePath);;
+		 driver.findElement(By.id("addCandidate_keyWords")).click();
+		 
+		 driver.findElement(By.cssSelector("#btnSave")).click();
+		 
 	 }
     
     @Then("^Validate the newly added vacancy was created with \"(.*)\", \"(.*)\"$")
@@ -117,6 +151,28 @@ public class OrangeHRMTestSteps {
 			  WebElement vacancy =driver.findElement(By.xpath("//table[@id='resultTable']/tbody/tr["+i+"]/td[2]/a")); 
 			  Assert.assertEquals("The vacancy was not created", vacancyName, vacancy.getText());
 		  }
+
+	 }
+    
+    @Then("^User navigates back to the Recruitments page to validate candidate entry with \"(.*)\", \"(.*)\"$")
+	 public void validateCandidate(String name, String jobTitle) throws Throwable{
+		  driver.findElement(By.id("menu_recruitment_viewCandidates")).click();
+		  
+		  //wait for the vacancies page to load
+		  wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("srchCandidates")));
+		  
+		  driver.findElement(By.id("candidateSearch_candidateName")).sendKeys(name);
+		  
+		  WebElement jobList = driver.findElement(By.id("candidateSearch_jobVacancy"));
+		  Select list1 = new Select(jobList);
+		  list1.selectByVisibleText(jobTitle);
+		  		  
+		  driver.findElement(By.id("btnSrch")).click();
+		  
+		  driver.manage().timeouts().implicitlyWait(5, TimeUnit.SECONDS);
+  		  
+		  String candidateName = driver.findElement(By.xpath("(//tr[@class='odd'])[1]//td[@class='left'][2]/a")).getText(); 
+		  Assert.assertEquals(name, candidateName);
 
 	 }
   
