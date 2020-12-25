@@ -17,13 +17,19 @@ import io.cucumber.java.en.When;
 import org.junit.Assert;
 
 import java.util.List;
+import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
 public class OrangeHRMTestSteps {
     WebDriver driver;
     WebDriverWait wait;
     
-    @Before ("@createjobvacancy or @addcandidate")
+    // Generating random number for empId
+	String empId;
+	Random rand = new Random();
+	int uname = rand.nextInt(1000);
+    
+    @Before ("@createjobvacancy or @addcandidate or @addmultipleEmployee or @createMultipleVacancies")
     public void openFirefox(){
         //Setup instances
         driver = new FirefoxDriver();
@@ -79,6 +85,20 @@ public class OrangeHRMTestSteps {
 		  wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("addCandidateHeading")));
 		 
 	 }
+    
+    @And("^User clicks on the PIM menu link$")
+	public void clickPIM() throws Throwable{
+		  wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("menu_pim_viewPimModule")));
+		  driver.findElement(By.id("menu_pim_viewPimModule")).click();	
+
+	}
+	
+	@And("^User clicks on the add employee button$")
+	public void addEmployeeLink() throws Throwable{
+		  wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("menu_pim_addEmployee")));
+		  driver.findElement(By.id("menu_pim_addEmployee")).click();
+
+	}
 
     @When("^User provides the job details \"(.*)\", \"(.*)\", \"(.*)\"$")
 	 public void fillJobDetails(String jobName, String vacancyName, String hiringMgr) throws Throwable {
@@ -124,8 +144,59 @@ public class OrangeHRMTestSteps {
 		 
 	 }
     
-    @Then("^Validate the newly added vacancy was created with \"(.*)\", \"(.*)\"$")
-	 public void VerifyVacancyGenerated(String jobName, String vacancyName) throws Throwable{
+    @And("^User checks the \"Create Login Details\" checkbox$")
+   	public void checkCreateLogin() throws Throwable{
+    	wait.until(ExpectedConditions.elementToBeClickable(By.id("chkLogin")));
+       	WebElement createLogin= driver.findElement(By.id("chkLogin"));
+   		  
+   		if (!createLogin.isSelected())
+   				  createLogin.click();
+   		  
+   	}
+    
+    @When("^User fills out employee details with \"(.*)\", \"(.*)\"$")
+	public void addEmployee(String firstname, String lastname) throws Throwable{
+
+		  driver.findElement(By.id("firstName")).sendKeys(firstname);
+		  driver.findElement(By.id("lastName")).sendKeys(lastname);
+		  driver.findElement(By.id("user_name")).sendKeys(firstname+uname);
+		  driver.findElement(By.id("user_password")).sendKeys("$A1b2c3#");
+		  driver.findElement(By.id("re_password")).sendKeys("$A1b2c3#");
+		  
+		  WebElement statusChkbox = driver.findElement(By.id("status"));
+		  Select dropdown = new Select(statusChkbox);
+		  dropdown.selectByValue("Enabled");
+		  
+		  empId = driver.findElement(By.id("employeeId")).getAttribute("value");	 
+
+		  driver.findElement(By.id("btnSave")).click();
+
+		  wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//div[@class='personalDetails']")));
+	 
+	}
+    
+    @When("^User fills out vacancy details from \"(.*)\", \"(.*)\", \"(.*)\" example table$")
+	public void addJobVacancy(String JobTitle, String VacancyName, String HiringMgr) throws Throwable{
+
+    	  WebElement titleDrpdwn = driver.findElement(By.id("addJobVacancy_jobTitle"));
+		  Select dropdown=new Select(titleDrpdwn);
+		  dropdown.selectByVisibleText(JobTitle);
+		  
+		  driver.findElement(By.id("addJobVacancy_name")).sendKeys(VacancyName);
+		  
+		  WebElement textbox = driver.findElement(By.id("addJobVacancy_hiringManager"));
+		  textbox.sendKeys(HiringMgr);
+		  textbox.sendKeys(Keys.ENTER);
+		  
+		  driver.findElement(By.id("addJobVacancy_noOfPositions")).sendKeys("1");	
+		  
+		  driver.findElement(By.id("btnSave")).click();
+	 
+	}
+    
+    
+    @Then("^User validates the newly added vacancy was created with \"(.*)\", \"(.*)\"$")
+	 public void verifyVacancyCreated(String jobName, String vacancyName) throws Throwable{
 		  
     	  driver.findElement(By.id("menu_recruitment_viewJobVacancy")).click();
 		  
@@ -175,6 +246,57 @@ public class OrangeHRMTestSteps {
 		  Assert.assertEquals(name, candidateName);
 
 	 }
+    
+    @Then("^User verifies that the employee details has been created$")
+	 public void verifyAddEmployee() throws Throwable{
+		  driver.findElement(By.id("menu_pim_viewEmployeeList")).click();
+		  wait.until(ExpectedConditions.elementToBeClickable(By.id("empsearch_id")));
+
+		  driver.findElement(By.id("empsearch_id")).sendKeys(empId);	
+		  
+		  driver.findElement(By.id("searchBtn")).click();
+		  driver.manage().timeouts().implicitlyWait(5, TimeUnit.SECONDS);
+		  
+		//Validate that the vacancy has been added 
+		  List<WebElement> tableRows=driver.findElements(By.xpath("//table[@id='resultTable']/tbody/tr"));
+		  
+		  for (int i=1;i<=tableRows.size();i++){
+			  WebElement EmployeeNumber =driver.findElement(By.xpath("//table[@id='resultTable']/tbody/tr["+i+"]/td[2]/a")); 
+			  Assert.assertEquals("The employee was not created", empId, EmployeeNumber.getText());
+		  }
+		  
+	}
+    
+    @Then("^User validates that the vacancies were created with \"(.*)\", \"(.*)\", \"(.*)\"$")
+	 public void verifyNewVacancies(String JobTitle, String VacancyName, String HiringMgr) throws Throwable{
+		  
+   	  driver.findElement(By.id("menu_recruitment_viewJobVacancy")).click();
+		  
+		  //wait for the vacancies page to load
+		  wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("srchVacancy")));
+		 
+		  WebElement jobTitle = driver.findElement(By.id("vacancySearch_jobTitle"));
+		  Select dropdown = new Select(jobTitle);
+		  dropdown.selectByVisibleText(JobTitle);
+		  
+		  WebElement jobVacancy = driver.findElement(By.id("vacancySearch_jobVacancy"));
+		  Select dropdown1 = new Select(jobVacancy);
+		  dropdown1.selectByVisibleText(VacancyName);
+		  
+		  WebElement hiringMgr = driver.findElement(By.id("vacancySearch_hiringManager"));
+		  Select dropdown2 = new Select(hiringMgr);
+		  dropdown2.selectByVisibleText(HiringMgr);
+		  
+		  driver.findElement(By.id("btnSrch")).click();
+		  
+		  driver.manage().timeouts().implicitlyWait(5, TimeUnit.SECONDS);
+		  
+		  //Validate that the vacancy has been created 
+		  String getVacancy = driver.findElement(By.xpath("//tr[@class='odd']/td[2]/a")).getText();
+		  Assert.assertEquals(VacancyName, getVacancy);
+
+	 }
+	
   
 
     @And("^Close the Browser for hrm activity$")
