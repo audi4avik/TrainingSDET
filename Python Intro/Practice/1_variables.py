@@ -19,3 +19,16 @@ course = '''Python
 for
 Beginners'''
 print(course)  # Multi line quotes
+
+'''
+Simple Types:
+Number -> int, float
+String 
+Boolean
+
+Complex Types:
+List
+Tuples
+Sets
+Dictionary
+'''
